@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D0 — Day Zero Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+--bg:#060608;
+--bg2:#0c0c10;
+--bg3:#111118;
+--surface:#16161f;
+--surface2:#1e1e2a;
+--border:#2a2a3a;
+--border2:#3a3a50;
+--text:#f0f0f8;
+--text2:#a0a0b8;
+--text3:#606078;
+--accent:#7c6fff;
+--accent2:#a78bfa;
+--accent3:#c4b5fd;
+--cyan:#22d3ee;
+--green:#4ade80;
+--red:#f87171;
+--amber:#fbbf24;
+--glow:rgba(124,111,255,0.15);
+--glow2:rgba(34,211,238,0.1);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* BACKGROUND MESH */
+.bg-mesh{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124,111,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(34,211,238,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(167,139,250,0.04) 0%, transparent 70%);
+}
+
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(124,111,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,111,255,0.04) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* NOISE OVERLAY */
+.bg-noise{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.app{position:relative;z-index:1;min-height:100vh}
+
+/* ─── LANDING / ONBOARDING ─── */
+#screen-landing{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:2rem;
+}
+
+.landing-inner{
+  width:100%;max-width:520px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.logo-mark{
+  font-family:'Syne',sans-serif;
+  font-weight:800;font-size:1rem;letter-spacing:0.3em;
+  color:var(--text3);text-transform:uppercase;
+  margin-bottom:3.5rem;
+  display:flex;align-items:center;gap:0.75rem;
+}
+.logo-mark::before{
+  content:'';display:block;width:24px;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--cyan));
+  border-radius:2px;
+}
+
+.onboard-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:2.5rem;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px rgba(124,111,255,0.1),
+    0 32px 64px rgba(0,0,0,0.6),
+    0 0 120px var(--glow);
+}
+
+.onboard-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(124,111,255,0.06) 0%,transparent 60%);
+  pointer-events:none;
+}
+
+.onboard-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:0.6;
+}
+
+.card-eyebrow{
+  font-family:'Syne',sans-serif;
+  font-size:0.7rem;letter-spacing:0.25em;font-weight:700;
+  color:var(--accent);text-transform:uppercase;margin-bottom:0.75rem;
+}
+
+.card-title{
+  font-family:'Syne',sans-serif;
+  font-size:2.25rem;font-weight:800;line-height:1.1;
+  background:linear-gradient(135deg,var(--text) 30%,var(--accent3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:0.5rem;
+}
+
+.card-subtitle{
+  font-size:0.9rem;color:var(--text2);line-height:1.6;
+  margin-bottom:2rem;
+}
+
+.field-group{margin-bottom:1.25rem}
+
+.field-label{
+  display:block;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;
+  color:var(--text3);text-transform:uppercase;margin-bottom:0.5rem;
+}
+
+.field-input{
+  width:100%;background:var(--bg2);
+  border:1px solid var(--border);border-radius:12px;
+  padding:0.875rem 1.125rem;
+  font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--text);
+  outline:none;transition:all 0.2s;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);
+}
+.field-input::placeholder{color:var(--text3)}
+.field-input:focus{
+  border-color:var(--accent);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.3),0 0 0 3px rgba(124,111,255,0.15);
+}
+
+.days-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;
+}
+.day-chip{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:0.625rem;text-align:center;cursor:pointer;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:var(--text2);
+  transition:all 0.2s;user-select:none;
+}
+.day-chip:hover{border-color:var(--border2);color:var(--text)}
+.day-chip.active{
+  background:rgba(124,111,255,0.15);border-color:var(--accent);
+  color:var(--accent2);box-shadow:0 0 16px rgba(124,111,255,0.2);
+}
+
+.custom-days{
+  display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;
+}
+.custom-days input{flex:1}
+
+.init-btn{
+  width:100%;margin-top:1.75rem;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  border:none;border-radius:14px;
+  padding:1rem;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;color:#fff;
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(124,111,255,0.35);
+}
+.init-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
+}
+.init-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 48px rgba(124,111,255,0.5);
+}
+.init-btn:active{transform:translateY(0) scale(0.98)}
+.init-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+
+.btn-inner{display:flex;align-items:center;justify-content:center;gap:0.5rem}
+.btn-spinner{
+  width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.7s linear infinite;display:none;
+}
+.loading .btn-spinner{display:block}
+.loading .btn-text{opacity:0.7}
+
+/* ─── DASHBOARD ─── */
+#screen-dashboard{
+  display:none;
+  min-height:100vh;padding:2rem;
+  flex-direction:column;align-items:center;
+}
+
+.dash-inner{width:100%;max-width:580px;padding-top:1.5rem}
+
+/* Top Nav */
+.dash-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2rem;
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:0.85rem;
+  letter-spacing:0.25em;color:var(--text3);text-transform:uppercase;
+}
+.nav-reset{
+  background:none;border:1px solid var(--border);border-radius:8px;
+  padding:0.4rem 0.75rem;font-size:0.75rem;color:var(--text3);
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all 0.2s;letter-spacing:0.05em;
+}
+.nav-reset:hover{border-color:var(--border2);color:var(--text2)}
+
+/* A. PROGRESS CARD */
+.progress-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:1.75rem;margin-bottom:1rem;
+  position:relative;overflow:hidden;
+  animation:fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 60px var(--glow);
+}
+.progress-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 10%,var(--accent) 50%,transparent 90%);
+  opacity:0.4;
+}
+
+.progress-top{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:1.5rem;gap:1rem;
+}
+
+.day-badge{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:3.5rem;line-height:1;letter-spacing:-0.03em;
+  background:linear-gradient(135deg,#fff 0%,var(--accent3) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+  filter:drop-shadow(0 0 20px rgba(196,181,253,0.4));
+}
+
+.progress-meta{flex:1;text-align:right}
+.goal-topic{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;
+  color:var(--text);line-height:1.3;margin-bottom:0.25rem;
+}
+.goal-topic em{
+  font-style:normal;color:var(--accent2);
+  background:linear-gradient(135deg,var(--accent),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.goal-days{font-size:0.8rem;color:var(--text3);letter-spacing:0.05em}
+
+.progress-bar-wrap{
+  height:4px;background:var(--bg2);border-radius:4px;overflow:hidden;
+  position:relative;margin-bottom:0.75rem;
+}
+.progress-bar-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--cyan));
+  transition:width 1s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;
+}
+.progress-bar-fill::after{
+  content:'';position:absolute;right:0;top:50%;
+  transform:translate(50%,-50%);
+  width:8px;height:8px;border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan),0 0 16px var(--cyan);
+}
+
+.progress-labels{
+  display:flex;justify-content:space-between;
+  font-size:0.72rem;color:var(--text3);letter-spacing:0.05em;
+}
+.progress-pct{
+  font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);
+}
+
+/* Day nav dots */
+.day-nav{
+  display:flex;gap:4px;margin-top:1.25rem;flex-wrap:wrap;
+}
+.day-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--bg2);border:1px solid var(--border);
+  transition:all 0.3s;cursor:default;
+  position:relative;
+}
+.day-dot.done{
+  background:var(--accent);border-color:var(--accent);
+  box-shadow:0 0 6px rgba(124,111,255,0.6);
+}
+.day-dot.active{
+  background:var(--cyan);border-color:var(--cyan);
+  box-shadow:0 0 10px rgba(34,211,238,0.8);
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot{
+  0%,100%{box-shadow:0 0 6px rgba(34,211,238,0.6)}
+  50%{box-shadow:0 0 16px rgba(34,211,238,1),0 0 30px rgba(34,211,238,0.4)}
+}
+
+/* B. MISSION CARD */
+.mission-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:1.75rem;margin-bottom:1rem;
+  position:relative;overflow:hidden;
+  animation:fadeUp 0.6s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  min-height:280px;
+}
+
+.mission-header{
+  display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;
+}
+.mission-day-label{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;
+  letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);
+}
+.mission-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.25rem;
+  color:var(--text);line-height:1.3;margin-bottom:1rem;
+}
+.status-pill{
+  margin-left:auto;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;
+  text-transform:uppercase;padding:0.3rem 0.75rem;border-radius:100px;
+}
+.status-pill.unlocked{
+  background:rgba(74,222,128,0.12);color:var(--green);
+  border:1px solid rgba(74,222,128,0.25);
+}
+.status-pill.locked{
+  background:rgba(248,113,113,0.12);color:var(--red);
+  border:1px solid rgba(248,113,113,0.25);
+}
+.status-pill.syllabus{
+  background:rgba(124,111,255,0.12);color:var(--accent2);
+  border:1px solid rgba(124,111,255,0.25);
+}
+
+/* Notes */
+.notes-list{list-style:none;margin-bottom:1.5rem}
+.notes-list li{
+  display:flex;align-items:flex-start;gap:0.625rem;
+  font-size:0.88rem;color:var(--text2);line-height:1.6;
+  padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.notes-list li:last-child{border-bottom:none}
+.bullet{
+  flex-shrink:0;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);margin-top:0.55rem;
+  box-shadow:0 0 6px rgba(124,111,255,0.6);
+}
+
+/* Terminal */
+.terminal-wrap{
+  background:#0a0a0f;border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:0.5rem;
+}
+.terminal-bar{
+  background:#111118;padding:0.625rem 1rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.t-dot{width:10px;height:10px;border-radius:50%}
+.t-dot:nth-child(1){background:#f87171}
+.t-dot:nth-child(2){background:#fbbf24}
+.t-dot:nth-child(3){background:#4ade80}
+.t-title{font-size:0.72rem;color:var(--text3);margin-left:auto;margin-right:auto;
+  letter-spacing:0.08em;font-family:'JetBrains Mono',monospace}
+.copy-btn{
+  margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;
+  padding:0.25rem 0.625rem;font-size:0.7rem;color:var(--text3);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;transition:all 0.2s;
+}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.copied{color:var(--green);border-color:var(--green)}
+.terminal-body{padding:1rem;font-family:'JetBrains Mono',monospace;font-size:0.8rem;line-height:1.8}
+.terminal-body .prompt{color:var(--accent);margin-right:0.5rem}
+.terminal-body .cmd{color:var(--text)}
+.terminal-body .comment{color:var(--text3);display:block;font-size:0.75rem;margin-top:-0.25rem}
+.terminal-body .output-line{color:var(--green);font-size:0.75rem;display:block}
+
+/* LOCKED STATE */
+.locked-overlay{
+  position:absolute;inset:0;border-radius:20px;
+  background:rgba(6,6,8,0.85);
+  backdrop-filter:blur(12px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1rem;z-index:10;
+  animation:fadeIn 0.4s ease;
+}
+.lock-icon{
+  width:56px;height:56px;border-radius:16px;
+  background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;
+  box-shadow:0 0 30px rgba(248,113,113,0.15);
+}
+.lock-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
+  color:var(--text);letter-spacing:0.05em;
+}
+.lock-msg{
+  font-size:0.82rem;color:var(--text3);text-align:center;
+  max-width:280px;line-height:1.6;
+}
+.lock-divider{
+  width:40px;height:1px;background:var(--border);
+}
+
+/* Syllabus view */
+.syllabus-wrap{}
+.syllabus-title{
+  font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--text3);font-weight:500;margin-bottom:1rem;
+}
+.syllabus-list{list-style:none}
+.syl-item{
+  display:flex;align-items:flex-start;gap:0.75rem;
+  padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:0.85rem;color:var(--text2);line-height:1.5;
+  transition:color 0.2s;
+}
+.syl-item:last-child{border-bottom:none}
+.syl-item:hover{color:var(--text)}
+.syl-num{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;
+  color:var(--text3);min-width:28px;margin-top:0.1rem;
+}
+.syl-done-marker{
+  font-size:0.7rem;margin-left:auto;padding-left:0.5rem;
+  color:var(--accent);opacity:0;transition:opacity 0.3s;
+}
+.syl-item.completed .syl-done-marker{opacity:1}
+.syl-item.completed .syl-num{color:var(--accent)}
+
+/* C. ACTION CARD */
+.action-card{
+  animation:fadeUp 0.6s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.accomplish-btn{
+  width:100%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  border:none;border-radius:16px;padding:1.1rem;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  font-size:0.875rem;font-weight:700;letter-spacing:0.15em;
+  text-transform:uppercase;color:#fff;
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(124,111,255,0.4),0 0 60px rgba(124,111,255,0.15);
+}
+.accomplish-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 60%);
+}
+.accomplish-btn::after{
+  content:'';position:absolute;top:-50%;left:-50%;
+  width:200%;height:200%;
+  background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.06) 50%,transparent 70%);
+  transform:translateX(-100%);
+  transition:transform 0.6s;
+}
+.accomplish-btn:hover::after{transform:translateX(100%)}
+.accomplish-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 16px 48px rgba(124,111,255,0.5),0 0 80px rgba(124,111,255,0.2);
+}
+.accomplish-btn:active{transform:scale(0.97) translateY(0)}
+.accomplish-btn:disabled{
+  opacity:0.4;cursor:not-allowed;transform:none;
+  box-shadow:none;
+}
+.accomplish-btn.bounce{animation:btnBounce 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+
+.next-btn{
+  width:100%;background:transparent;
+  border:1px solid var(--border);border-radius:16px;padding:1rem;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  font-size:0.875rem;font-weight:700;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--text2);
+  transition:all 0.25s;
+}
+.next-btn:hover{
+  border-color:var(--accent);color:var(--accent2);
+  background:rgba(124,111,255,0.06);
+}
+
+/* SYLLABUS START BTN */
+.start-protocol-btn{
+  width:100%;
+  background:linear-gradient(135deg,rgba(124,111,255,0.2),rgba(34,211,238,0.15));
+  border:1px solid rgba(124,111,255,0.4);
+  border-radius:16px;padding:1.1rem;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  font-size:0.875rem;font-weight:700;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--accent2);
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 0 40px rgba(124,111,255,0.1);
+}
+.start-protocol-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(124,111,255,0.25),0 0 60px rgba(124,111,255,0.1);
+  background:linear-gradient(135deg,rgba(124,111,255,0.3),rgba(34,211,238,0.2));
+}
+
+/* CONFETTI */
+.confetti-container{
+  position:fixed;inset:0;pointer-events:none;z-index:1000;overflow:hidden;
+}
+.confetti-piece{
+  position:absolute;top:-20px;width:8px;height:8px;border-radius:2px;
+  animation:confettiFall linear forwards;
+}
+
+/* TRANSITIONS */
+.card-transition{
+  animation:cardSwap 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* LOADING SHIMMER */
+.shimmer{
+  background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:8px;height:14px;margin-bottom:8px;
+}
+
+/* GENERATING SCREEN */
+.generating-overlay{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(6,6,8,0.97);
+  backdrop-filter:blur(20px);
+}
+.gen-inner{text-align:center;animation:fadeIn 0.4s ease}
+.gen-ring{
+  width:80px;height:80px;border-radius:50%;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);
+  border-right-color:var(--cyan);
+  animation:spin 1.2s linear infinite;
+  margin:0 auto 1.5rem;
+  box-shadow:0 0 30px var(--glow),0 0 60px rgba(34,211,238,0.08);
+}
+.gen-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;
+  color:var(--text);margin-bottom:0.5rem;
+}
+.gen-sub{font-size:0.85rem;color:var(--text3);letter-spacing:0.05em}
+.gen-dots span{
+  display:inline-block;animation:dotPulse 1.4s ease-in-out infinite;
+  color:var(--accent2);font-size:1.2rem;
+}
+.gen-dots span:nth-child(2){animation-delay:0.2s}
+.gen-dots span:nth-child(3){animation-delay:0.4s}
+
+/* COMPLETED BANNER */
+.completed-banner{
+  background:linear-gradient(135deg,rgba(74,222,128,0.08),rgba(124,111,255,0.08));
+  border:1px solid rgba(74,222,128,0.2);border-radius:16px;
+  padding:1.5rem;margin-bottom:1rem;text-align:center;
+  animation:fadeUp 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.completed-banner .trophy{font-size:2rem;margin-bottom:0.5rem}
+.completed-banner h3{
+  font-family:'Syne',sans-serif;font-weight:700;
+  color:var(--green);margin-bottom:0.25rem;
+}
+.completed-banner p{font-size:0.85rem;color:var(--text2)}
+
+/* KEYFRAMES */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{
+  from{opacity:0}to{opacity:1}
+}
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+@keyframes btnBounce{
+  0%{transform:scale(1)}
+  30%{transform:scale(0.92)}
+  60%{transform:scale(1.06)}
+  100%{transform:scale(1)}
+}
+@keyframes cardSwap{
+  from{opacity:0;transform:translateY(12px) scale(0.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes confettiFall{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+@keyframes dotPulse{
+  0%,80%,100%{transform:scale(0.8);opacity:0.4}
+  40%{transform:scale(1.2);opacity:1}
+}
+@keyframes floatIn{
+  from{opacity:0;transform:translateY(-8px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* 3D TILT EFFECT */
+.tilt-card{transform-style:preserve-3d;transition:transform 0.1s ease}
+
+/* Responsive */
+@media(max-width:600px){
+  .day-badge{font-size:2.5rem}
+  .card-title{font-size:1.75rem}
+  .onboard-card{padding:1.75rem}
+  .days-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+<div class="bg-noise"></div>
+
+<div class="app">
+
+<!-- ═══ LANDING SCREEN ═══ -->
+<div id="screen-landing">
+  <div class="landing-inner">
+    <div class="logo-mark">D0 Protocol</div>
+    <div class="onboard-card tilt-card" id="onboard-card">
+      <div class="card-eyebrow">Initialize Learning Engine</div>
+      <h1 class="card-title">Day Zero<br>Begins Now.</h1>
+      <p class="card-subtitle">Define your mission. Commit to the timeline. The AI generates your personal micro-learning roadmap — one locked day at a time.</p>
+
+      <div class="field-group">
+        <label class="field-label">What do you want to master?</label>
+        <input class="field-input" id="topic-input" type="text"
+          placeholder="e.g. DevSecOps, Japanese, Machine Learning…" autocomplete="off">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Select your timeline</label>
+        <div class="days-grid">
+          <div class="day-chip" data-days="14">14d</div>
+          <div class="day-chip active" data-days="30">30d</div>
+          <div class="day-chip" data-days="60">60d</div>
+          <div class="day-chip" data-days="90">90d</div>
+        </div>
+        <div class="custom-days" style="margin-top:0.625rem">
+          <input class="field-input" id="custom-days" type="number"
+            min="7" max="365" placeholder="Custom days…"
+            style="height:40px;font-size:0.85rem;padding:0 0.875rem">
+        </div>
+      </div>
+
+      <button class="init-btn" id="init-btn" onclick="handleInit()">
+        <div class="btn-inner">
+          <div class="btn-spinner" id="btn-spinner"></div>
+          <span class="btn-text" id="btn-text">⚡ Initialize Protocol</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GENERATING OVERLAY ═══ -->
+<div class="generating-overlay" id="gen-overlay" style="display:none">
+  <div class="gen-inner">
+    <div class="gen-ring"></div>
+    <div class="gen-title">Synthesizing your roadmap<span class="gen-dots"><span>.</span><span>.</span><span>.</span></span></div>
+    <div class="gen-sub" id="gen-status">Querying AI engine</div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD SCREEN ═══ -->
+<div id="screen-dashboard">
+  <div class="dash-inner">
+
+    <!-- Nav -->
+    <div class="dash-nav">
+      <div class="nav-logo">D0 Protocol</div>
+      <button class="nav-reset" onclick="handleReset()">↩ Reset</button>
+    </div>
+
+    <!-- A. PROGRESS CARD -->
+    <div class="progress-card tilt-card" id="progress-card">
+      <div class="progress-top">
+        <div class="day-badge" id="day-badge">D0</div>
+        <div class="progress-meta">
+          <div class="goal-topic" id="goal-topic">—</div>
+          <div class="goal-days" id="goal-days">Day 0 of 30</div>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-labels">
+        <span>Start</span>
+        <span class="progress-pct" id="progress-pct">0% Complete</span>
+        <span>Finish</span>
+      </div>
+      <div class="day-nav" id="day-nav"></div>
+    </div>
+
+    <!-- B. MISSION CARD -->
+    <div class="mission-card tilt-card" id="mission-card">
+      <!-- Content injected by JS -->
+    </div>
+
+    <!-- C. ACTION CARD -->
+    <div class="action-card" id="action-card">
+      <!-- Button injected by JS -->
+    </div>
+
+  </div>
+</div>
+
+<!-- CONFETTI LAYER -->
+<div class="confetti-container" id="confetti"></div>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   D0 — STATE MACHINE
+═══════════════════════════════════════════ */
+
+const COLORS = ['#7c6fff','#22d3ee','#a78bfa','#4ade80','#fbbf24','#f87171','#c4b5fd'];
+
+// STATE
+let state = {
+  topic:'',
+  totalDays:30,
+  currentDay:0,      // 0 = syllabus day
+  completedDays:[],  // array of completed day numbers
+  syllabus:[],       // [{day, title, notes, tasks, taskType}]
+  initialized:false,
+  allDone:false
+};
+
+/* ─── PERSISTENCE ─── */
+function saveState(){localStorage.setItem('d0_state',JSON.stringify(state))}
+function loadState(){
+  const raw=localStorage.getItem('d0_state');
+  if(raw){try{state={...state,...JSON.parse(raw)};return true}catch(e){}}
+  return false;
+}
+
+/* ─── INIT ─── */
+window.addEventListener('DOMContentLoaded',()=>{
+  // Tilt effect
+  setupTiltEffect();
+
+  // Day chips
+  document.querySelectorAll('.day-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      state.totalDays=parseInt(chip.dataset.days);
+      document.getElementById('custom-days').value='';
+    });
+  });
+  document.getElementById('custom-days').addEventListener('input',function(){
+    if(this.value&&parseInt(this.value)>=7){
+      document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('active'));
+      state.totalDays=parseInt(this.value);
+    }
+  });
+
+  // Restore session
+  if(loadState()&&state.initialized){
+    showDashboard();
+    renderDashboard();
+  }
+});
+
+/* ─── TILT 3D ─── */
+function setupTiltEffect(){
+  document.querySelectorAll('.tilt-card').forEach(card=>{
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-0.5;
+      const y=(e.clientY-r.top)/r.height-0.5;
+      card.style.transform=`perspective(1000px) rotateY(${x*6}deg) rotateX(${-y*4}deg) translateZ(8px)`;
+    });
+    card.addEventListener('mouseleave',()=>{
+      card.style.transform='perspective(1000px) rotateY(0deg) rotateX(0deg) translateZ(0px)';
+    });
+  });
+}
+
+/* ─── AI ROADMAP GENERATOR (LOCAL) ─── */
+async function generateRoadmap(topic, days){
+  // Simulate AI via Anthropic API (mocked locally for self-contained build)
+  // In production this calls POST /api/roadmap/create
+  // For this prototype we generate intelligent mock content locally
+  return buildLocalRoadmap(topic, days);
+}
+
+function buildLocalRoadmap(topic, totalDays){
+  const t=topic.trim();
+  const isCode=/(devsec|devops|security|hack|nmap|linux|python|docker|kubernetes|cloud|aws|cybersec|network|programming|code|dev|engineer)/i.test(t);
+  const isLang=/(japanese|korean|french|spanish|german|mandarin|arabic|language|speak)/i.test(t);
+  const isSpeak=/(public speak|present|speech|commun|oratory)/i.test(t);
+
+  // Generate syllabus topics
+  const topics=generateTopics(t,totalDays,isCode,isLang,isSpeak);
+
+  return topics.map((item,i)=>({
+    day:i+1,
+    title:item.title,
+    notes:item.notes,
+    tasks:item.tasks,
+    taskType:isCode?'terminal':isLang?'phrases':'notes'
+  }));
+}
+
+function generateTopics(topic,days,isCode,isLang,isSpeak){
+  const topics=[];
+  const phases=getPhasedCurriculum(topic,days,isCode,isLang,isSpeak);
+  for(let i=0;i<days;i++){
+    const phase=Math.floor((i/days)*phases.length);
+    const p=phases[Math.min(phase,phases.length-1)];
+    const subtopicIdx=i%p.subtopics.length;
+    const sub=p.subtopics[subtopicIdx];
+    topics.push({
+      title:`${p.phase}: ${sub.name}`,
+      notes:sub.notes,
+      tasks:sub.tasks
+    });
+  }
+  return topics;
+}
+
+function getPhasedCurriculum(topic,days,isCode,isLang,isSpeak){
+  if(isCode){
+    return [
+      {phase:'Foundations',subtopics:[
+        {name:'Environment Setup',
+          notes:['Configure your local lab with VirtualBox or Docker for isolated testing','Install essential tools: Kali Linux, nmap, Wireshark, Metasploit framework','Understand CIA triad — Confidentiality, Integrity, Availability fundamentals','Set up SSH key-based auth and disable password login immediately'],
+          tasks:['sudo apt-get update && sudo apt-get upgrade -y','docker pull kalilinux/kali-rolling','ssh-keygen -t ed25519 -C "your@email.com"','cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys']},
+        {name:'Network Fundamentals',
+          notes:['TCP/IP model: 4 layers — Link, Internet, Transport, Application','Ports 0–1023 are well-known; 80=HTTP, 443=HTTPS, 22=SSH, 3306=MySQL','OSI model maps to real attacks: ARP poisoning at Layer 2, IP spoofing at Layer 3','Subnetting: /24 = 254 hosts, /16 = 65,534 hosts, /8 = 16M hosts'],
+          tasks:['sudo nmap -sS -v 192.168.1.0/24','netstat -tuln | grep LISTEN','ip route show','sudo tcpdump -i eth0 -n port 80']},
+        {name:'Linux Hardening',
+          notes:['Principle of least privilege: never run services as root unnecessarily','UFW firewall: deny all inbound, allow specific ports only','Audit SUID files — these can be privilege escalation vectors','File permissions: 644 for files, 755 for dirs, 600 for private keys'],
+          tasks:['sudo ufw enable && sudo ufw default deny incoming','find / -perm -4000 -type f 2>/dev/null','sudo chkconfig --list | grep :on','sudo fail2ban-client status sshd']},
+      ]},
+      {phase:'Scanning & Recon',subtopics:[
+        {name:'Nmap Mastery',
+          notes:['SYN scan (-sS) is stealthier than TCP connect (-sT) — leaves no full handshake','Service version detection (-sV) identifies exact software versions for CVE lookup','OS fingerprinting (-O) uses TCP/IP stack quirks to guess the OS','Script engine (--script) runs NSE scripts for vulnerability checks'],
+          tasks:['sudo nmap -sS -sV -O -p- 192.168.1.100','nmap --script=vuln 192.168.1.100','nmap -A -T4 -oN output.txt target.local','sudo nmap -sU --top-ports 100 192.168.1.100']},
+        {name:'OSINT Techniques',
+          notes:['theHarvester collects emails, hosts, IPs from public sources passively','Shodan.io: search engine for internet-connected devices and banners','WHOIS and DNS enumeration reveals infrastructure before any active scan','Google dorks: site:target.com filetype:pdf inurl:admin for info leakage'],
+          tasks:['theHarvester -d target.com -b google','subfinder -d target.com | httpx -silent','dig target.com ANY +short','whois target.com | grep -i nameserver']},
+      ]},
+      {phase:'Exploitation',subtopics:[
+        {name:'Metasploit Framework',
+          notes:['msfconsole is the CLI — use search to find modules by CVE or keyword','Payloads: staged (stage/x/shell) send in parts; stageless send everything at once','Always verify exploits in isolated lab — unauthorized testing is illegal','Post-exploitation: hashdump, screenshot, persistence modules'],
+          tasks:['msfconsole -q','msf6 > search type:exploit platform:linux','msf6 > use exploit/multi/handler','msf6 exploit(handler) > set LHOST 192.168.1.5']},
+        {name:'Web Application Attacks',
+          notes:['OWASP Top 10: Injection, Broken Auth, XSS, IDOR, Security Misconfiguration','SQLmap automates SQL injection detection and exploitation with --dbs flag','Burp Suite intercepts HTTP traffic — use Repeater for manual testing','XSS: stored (persistent) vs reflected (URL-based) — different impact levels'],
+          tasks:["sqlmap -u 'http://target.com/page?id=1' --dbs --batch",'nikto -h http://target.com','gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt','curl -X POST target.com/login -d "user=admin&pass=\' OR 1=1--"']},
+      ]},
+      {phase:'Defense & Hardening',subtopics:[
+        {name:'Log Analysis & SIEM',
+          notes:['Logs tell the story: auth.log for SSH, syslog for system events, apache2/access.log for web','grep and awk are your fastest tools — use them before reaching for a SIEM','Splunk free tier: 500MB/day, perfect for home lab monitoring and alerting','Key indicators: multiple failed logins, unusual outbound connections, cron changes'],
+          tasks:["grep 'Failed password' /var/log/auth.log | awk '{print $11}' | sort | uniq -c | sort -rn",'tail -f /var/log/syslog | grep -i error','journalctl -u ssh --since today','last -n 20 | grep -v reboot']},
+        {name:'Incident Response',
+          notes:['IR phases: Preparation → Identification → Containment → Eradication → Recovery → Lessons','Memory forensics with Volatility reveals running processes, network connections, injected code','Chain of custody: always work on forensic copies — never touch original evidence','Volatility pstree shows process hierarchy — spot orphaned or injected processes'],
+          tasks:['volatility -f memory.dmp imageinfo','netstat -antp | grep ESTABLISHED','ps aux --forest | less','sudo lsof -i -n -P | grep ESTABLISHED']},
+      ]},
+    ];
+  }
+
+  if(isLang){
+    return [
+      {phase:'Basics',subtopics:[
+        {name:'Greetings & Introductions',
+          notes:['Formal vs informal registers are critical — use keigo (formal) with strangers','Pronunciation guide: vowels are pure (a=ah, i=ee, u=oo, e=eh, o=oh)','Pitch accent differs by dialect — Tokyo accent is most standard','Start with hiragana: 46 characters, fully phonetic, learned in 1-2 weeks'],
+          tasks:['こんにちは (Konnichiwa) — Hello (daytime)','おはようございます (Ohayou gozaimasu) — Good morning (formal)','はじめまして (Hajimemashite) — Nice to meet you','よろしくお願いします (Yoroshiku onegaishimasu) — Please treat me well']},
+        {name:'Numbers & Time',
+          notes:['Two counting systems: native Japanese (hitotsu, futatsu) and Sino-Japanese (ichi, ni, san)','Time: 何時 (nanji) = what time, 午前 (gozen) = AM, 午後 (gogo) = PM','Counters change by object type: 枚 for flat objects, 本 for long objects, 匹 for animals','Days of the week end in 曜日 (youbi) — Monday = 月曜日 (getsuyoubi)'],
+          tasks:['一、二、三、四、五 (ichi, ni, san, shi, go) — 1 to 5','今何時ですか？(Ima nanji desu ka?) — What time is it now?','今日は何曜日ですか？(Kyou wa nanyoubi desu ka?) — What day is today?','3時15分 (san-ji juu-go-fun) — 3:15']},
+      ]},
+      {phase:'Intermediate',subtopics:[
+        {name:'Particles & Grammar',
+          notes:['は (wa) marks the topic; が (ga) marks the subject — this distinction is crucial','に (ni) marks direction/time/indirect object; で (de) marks location of action','を (wo/o) marks the direct object — always follows the thing being acted on','Verb conjugation: dictionary form → ます form for polite speech'],
+          tasks:['私は学生です (Watashi wa gakusei desu) — I am a student','東京に行きます (Tokyo ni ikimasu) — I will go to Tokyo','日本語を勉強しています (Nihongo wo benkyou shite imasu) — I am studying Japanese','電車で来ました (Densha de kimashita) — I came by train']},
+        {name:'Common Phrases',
+          notes:['すみません (sumimasen) — excuse me / sorry (most versatile word to learn first)','わかりません (wakarimasen) — I do not understand (essential for beginners)','もう一度お願いします (mou ichido onegaishimasu) — Please say that again','どこですか？(doko desu ka?) — Where is it? (attach place or noun in front)'],
+          tasks:['すみません、〇〇はどこですか？(Sumimasen, __ wa doko desu ka?)','日本語が少し話せます (Nihongo ga sukoshi hanasemasu) — I can speak a little Japanese','英語が話せる方はいますか？(Eigo ga hanaseru kata wa imasu ka?) — Is there anyone who speaks English?','メニューをください (Menyuu wo kudasai) — Please give me the menu']},
+      ]},
+    ];
+  }
+
+  // Generic / Public Speaking
+  return [
+    {phase:'Foundations',subtopics:[
+      {name:'Core Principles',
+        notes:['Deliberate practice: identify specific weaknesses and target them directly each session','The 80/20 rule applies — master the 20% of concepts that deliver 80% of results first','Spaced repetition: review material at increasing intervals (1d, 3d, 7d, 14d, 30d)','Active recall beats passive re-reading — quiz yourself without looking at notes'],
+        tasks:['Session 1: 25-min focused study block (Pomodoro technique)','Write 3 key takeaways from today in your own words — no copy-paste','Teach the concept to someone else or explain it aloud to yourself','Create 5 flashcards for the most important terms using Anki or Notion']},
+      {name:'Mindset & Habits',
+        notes:['Growth mindset: ability is developed, not fixed — mistakes are data, not failures','Habit stacking: attach new learning habit to an existing one (after coffee → study)','Environment design: remove friction (laptop open, app ready) to reduce startup resistance','Track streaks — the visual chain motivates consistency more than willpower alone'],
+        tasks:['Set a daily learning alarm with the label: "D0 Protocol — Show up"','Prepare your workspace the night before — open notebook, queued video, cleared desk','Write your "why" in one sentence and keep it visible during study sessions','End each session logging: what I learned, what was hard, what I will review']},
+    ]},
+    {phase:'Deep Work',subtopics:[
+      {name:'Skill Application',
+        notes:['Theory without practice decays in 72 hours — apply within 24 hours of learning','Project-based learning: build something real with each new concept you acquire','Seek immediate feedback loops — submit work, get critiqued, iterate fast','Cross-reference 3 sources before accepting a concept as true — depth over breadth'],
+        tasks:['Apply today\'s concept in a real mini-project (15 mins minimum)','Find one expert resource (book chapter, podcast, paper) on today\'s topic','Write a 100-word summary of what you learned as if explaining to a 10-year-old','Schedule a 30-min review session 3 days from now in your calendar']},
+    ]},
+  ];
+}
+
+/* ─── HANDLE INIT ─── */
+async function handleInit(){
+  const topic=document.getElementById('topic-input').value.trim();
+  if(!topic){
+    document.getElementById('topic-input').focus();
+    document.getElementById('topic-input').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('topic-input').style.borderColor='',1500);
+    return;
+  }
+
+  // Show loading
+  const btn=document.getElementById('init-btn');
+  btn.disabled=true;
+  btn.classList.add('loading');
+  document.getElementById('btn-text').textContent='Generating…';
+
+  // Show generating overlay
+  document.getElementById('gen-overlay').style.display='flex';
+  const statuses=['Querying AI engine','Mapping learning phases','Building daily missions','Sequencing micro-content','Locking the protocol'];
+  let si=0;
+  const statusInt=setInterval(()=>{
+    si=(si+1)%statuses.length;
+    document.getElementById('gen-status').textContent=statuses[si];
+  },600);
+
+  await sleep(2800);
+  clearInterval(statusInt);
+
+  // Generate
+  const syllabus=await generateRoadmap(topic,state.totalDays);
+
+  state.topic=topic;
+  state.syllabus=syllabus;
+  state.currentDay=0;
+  state.completedDays=[];
+  state.initialized=true;
+  state.allDone=false;
+  saveState();
+
+  document.getElementById('gen-overlay').style.display='none';
+  btn.disabled=false;
+  btn.classList.remove('loading');
+
+  showDashboard();
+  renderDashboard();
+}
+
+/* ─── SCREENS ─── */
+function showDashboard(){
+  document.getElementById('screen-landing').style.display='none';
+  document.getElementById('screen-dashboard').style.display='flex';
+  // Re-setup tilt
+  setTimeout(setupTiltEffect,100);
+}
+
+function showLanding(){
+  document.getElementById('screen-dashboard').style.display='none';
+  document.getElementById('screen-landing').style.display='flex';
+}
+
+function handleReset(){
+  if(!confirm('Reset D0 Protocol? All progress will be lost.'))return;
+  localStorage.removeItem('d0_state');
+  state={topic:'',totalDays:30,currentDay:0,completedDays:[],syllabus:[],initialized:false,allDone:false};
+  document.getElementById('topic-input').value='';
+  showLanding();
+}
+
+/* ─── RENDER DASHBOARD ─── */
+function renderDashboard(){
+  const {currentDay,totalDays,completedDays,topic,syllabus,allDone}=state;
+
+  // A. PROGRESS
+  document.getElementById('day-badge').textContent=`D${currentDay}`;
+  document.getElementById('goal-topic').innerHTML=`<em>${topic}</em>`;
+  const pct=Math.round((completedDays.length/totalDays)*100);
+  document.getElementById('goal-days').textContent=`Day ${currentDay} of ${totalDays}`;
+  document.getElementById('progress-fill').style.width=`${pct}%`;
+  document.getElementById('progress-pct').textContent=`${pct}% Complete`;
+
+  // Day dots
+  const dotWrap=document.getElementById('day-nav');
+  dotWrap.innerHTML='';
+  const maxDots=Math.min(totalDays,60);
+  for(let d=1;d<=maxDots;d++){
+    const dot=document.createElement('div');
+    dot.className='day-dot';
+    if(completedDays.includes(d))dot.classList.add('done');
+    else if(d===currentDay)dot.classList.add('active');
+    dotWrap.appendChild(dot);
+  }
+
+  // B. MISSION + C. ACTION
+  if(allDone){
+    renderCompleted();
+    return;
+  }
+
+  if(currentDay===0){
+    renderSyllabus();
+  } else {
+    const day=syllabus[currentDay-1];
+    const isLocked=currentDay>0&&!completedDays.includes(currentDay-1)&&currentDay>1;
+    renderMission(day,currentDay,isLocked);
+  }
+}
+
+function renderSyllabus(){
+  const {syllabus,topic}=state;
+  const mc=document.getElementById('mission-card');
+  mc.className='mission-card tilt-card';
+  mc.innerHTML=`
+    <div class="mission-header">
+      <span class="mission-day-label">D0 — Master Syllabus</span>
+      <span class="status-pill syllabus">Overview</span>
+    </div>
+    <div class="mission-title">Your ${state.totalDays}-Day <em style="background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:normal">${topic}</em> Blueprint</div>
+    <div class="syllabus-wrap">
+      <div class="syllabus-title">Full Mission Roadmap</div>
+      <ul class="syllabus-list" id="syl-list">
+        ${syllabus.slice(0,Math.min(syllabus.length,20)).map((s,i)=>`
+          <li class="syl-item${state.completedDays.includes(i+1)?' completed':''}">
+            <span class="syl-num">D${i+1}</span>
+            <span>${s.title}</span>
+            <span class="syl-done-marker">✓</span>
+          </li>
+        `).join('')}
+        ${syllabus.length>20?`<li class="syl-item"><span class="syl-num" style="color:var(--text3)">+${syllabus.length-20}</span><span style="color:var(--text3)">more days await…</span></li>`:''}
+      </ul>
+    </div>
+  `;
+
+  document.getElementById('action-card').innerHTML=`
+    <button class="start-protocol-btn" onclick="startProtocol()">
+      ⚡ Begin Day 1 — Activate Protocol
+    </button>
+  `;
+
+  setTimeout(setupTiltEffect,50);
+}
+
+function renderMission(day,dayNum,isLocked){
+  const mc=document.getElementById('mission-card');
+  mc.className='mission-card tilt-card card-transition';
+
+  if(isLocked){
+    mc.innerHTML=`
+      <div class="mission-header">
+        <span class="mission-day-label">D${dayNum} — Classified</span>
+        <span class="status-pill locked">Locked</span>
+      </div>
+      <div class="mission-title" style="filter:blur(6px);user-select:none">████████████████</div>
+      <ul class="notes-list" style="filter:blur(6px)">
+        <li><span class="bullet"></span>████████████████████████</li>
+        <li><span class="bullet"></span>██████████████████</li>
+        <li><span class="bullet"></span>████████████████████████████</li>
+      </ul>
+      <div class="locked-overlay">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">Access Denied</div>
+        <div class="lock-divider"></div>
+        <div class="lock-msg">Complete your previous day's protocol to unlock this mission.</div>
+        <button class="nav-reset" onclick="goToCurrentDay()" style="margin-top:0.5rem;border-color:var(--accent);color:var(--accent2)">← Go to Active Day</button>
+      </div>
+    `;
+    document.getElementById('action-card').innerHTML=`
+      <button class="accomplish-btn" disabled>Mission Locked 🔒</button>
+    `;
+  } else {
+    mc.innerHTML=buildMissionContent(day,dayNum);
+    const isDone=state.completedDays.includes(dayNum);
+    document.getElementById('action-card').innerHTML=isDone
+      ? `<button class="accomplish-btn" disabled>✓ Mission Complete</button>`
+      : `<button class="accomplish-btn" id="accomplish-btn" onclick="accomplishMission()">⚡ Mission Accomplished</button>`;
+  }
+
+  setTimeout(setupTiltEffect,50);
+}
+
+function buildMissionContent(day,dayNum){
+  const isDone=state.completedDays.includes(dayNum);
+  const taskLabel={terminal:'Terminal Commands',phrases:'Key Phrases',notes:'Practice Tasks'};
+  return `
+    <div class="mission-header">
+      <span class="mission-day-label">D${dayNum} — Active Mission</span>
+      <span class="status-pill ${isDone?'unlocked':'unlocked'}">${isDone?'✓ Done':'Unlocked'}</span>
+    </div>
+    <div class="mission-title">${day.title}</div>
+    <ul class="notes-list">
+      ${day.notes.map(n=>`<li><span class="bullet"></span>${n}</li>`).join('')}
+    </ul>
+    <div class="terminal-wrap">
+      <div class="terminal-bar">
+        <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+        <div class="t-title">${taskLabel[day.taskType]||'Tasks'}</div>
+        <button class="copy-btn" id="copy-btn" onclick="copyTasks()">Copy</button>
+      </div>
+      <div class="terminal-body" id="terminal-body">
+        ${day.tasks.map((t,i)=>`
+          <div>
+            <span class="prompt">${day.taskType==='terminal'?'$':day.taskType==='phrases'?'▸':'→'}</span>
+            <span class="cmd">${escHtml(t)}</span>
+          </div>
+          ${i<day.tasks.length-1?'<div style="height:4px"></div>':''}
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderCompleted(){
+  document.getElementById('mission-card').innerHTML=`
+    <div class="completed-banner" style="margin:0;border-radius:inherit">
+      <div class="trophy">🏆</div>
+      <h3>Protocol Complete</h3>
+      <p>You mastered <strong>${state.topic}</strong> in ${state.totalDays} days.<br>Discipline executed. Mission accomplished.</p>
+    </div>
+  `;
+  document.getElementById('action-card').innerHTML=`
+    <button class="accomplish-btn" style="background:linear-gradient(135deg,var(--green),var(--cyan))" disabled>🏆 All Missions Complete</button>
+  `;
+}
+
+/* ─── ACTIONS ─── */
+function startProtocol(){
+  state.currentDay=1;
+  saveState();
+  renderDashboard();
+  confettiBurst();
+}
+
+function goToCurrentDay(){
+  // Find the actual active day
+  const nextDay=state.completedDays.length+1;
+  state.currentDay=nextDay;
+  saveState();
+  renderDashboard();
+}
+
+async function accomplishMission(){
+  const btn=document.getElementById('accomplish-btn');
+  if(!btn)return;
+  btn.disabled=true;
+  btn.textContent='⚡ Logging…';
+  btn.classList.add('bounce');
+
+  await sleep(400);
+  confettiBurst();
+  await sleep(300);
+
+  // POST /api/mission/verify (simulated)
+  state.completedDays.push(state.currentDay);
+  const nextDay=state.currentDay+1;
+
+  if(nextDay>state.totalDays){
+    state.allDone=true;
+    saveState();
+    await sleep(600);
+    renderDashboard();
+    return;
+  }
+
+  state.currentDay=nextDay;
+  saveState();
+
+  // Animate card swap
+  await sleep(200);
+  renderDashboard();
+}
+
+function copyTasks(){
+  const day=state.syllabus[state.currentDay-1];
+  if(!day)return;
+  navigator.clipboard.writeText(day.tasks.join('\n')).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied')},2000);}
+  });
+}
+
+/* ─── CONFETTI ─── */
+function confettiBurst(){
+  const container=document.getElementById('confetti');
+  container.innerHTML='';
+  for(let i=0;i<60;i++){
+    const piece=document.createElement('div');
+    piece.className='confetti-piece';
+    piece.style.cssText=`
+      left:${Math.random()*100}%;
+      background:${COLORS[Math.floor(Math.random()*COLORS.length)]};
+      width:${4+Math.random()*8}px;
+      height:${4+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:${Math.random()*0.4}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(()=>{container.innerHTML=''},4000);
+}
+
+/* ─── UTILS ─── */
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+</script>
+</body>
+</html>
